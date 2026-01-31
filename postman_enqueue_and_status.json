@@ -1,0 +1,80 @@
+{
+  "info": {
+    "name": "POC Short Polling",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Enqueue Message",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"content\": \"mensagem de teste\"}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8000/enqueue",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "8000",
+          "path": ["enqueue"]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "var data = pm.response.json();",
+              "pm.collectionVariables.set('message_id', data.message_id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Check Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://127.0.0.1:8000/status/{{message_id}}",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "8000",
+          "path": ["status", "{{message_id}}"]
+        }
+      }
+    },
+    {
+      "name": "Short Polling Process and Wait",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"content\": \"mensagem de teste\"}"
+        },
+        "url": {
+          "raw": "http://127.0.0.1:8001/process-and-wait",
+          "protocol": "http",
+          "host": ["127.0.0.1"],
+          "port": "8001",
+          "path": ["process-and-wait"]
+        }
+      }
+    }
+  ]
+}
