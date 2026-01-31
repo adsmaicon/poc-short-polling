@@ -1,31 +1,40 @@
-import pika
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+
 import os
 import uuid
+import pika
 import psycopg2
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
 RABBITMQ_USER = os.getenv("RABBITMQ_USER", "user")
 RABBITMQ_PASS = os.getenv("RABBITMQ_PASS", "password")
 QUEUE_NAME = "poc_queue"
 
+
 app = FastAPI()
+
 
 class Message(BaseModel):
     content: str
 
+
 def get_connection():
     credentials = pika.PlainCredentials(RABBITMQ_USER, RABBITMQ_PASS)
-    return pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST, credentials=credentials))
+    return pika.BlockingConnection(
+        pika.ConnectionParameters(host=RABBITMQ_HOST, credentials=credentials)
+    )
+
 
 def get_pg_conn():
+
     return psycopg2.connect(
         host=os.getenv("POSTGRES_HOST", "localhost"),
         user=os.getenv("POSTGRES_USER", "user"),
         password=os.getenv("POSTGRES_PASSWORD", "password"),
         dbname=os.getenv("POSTGRES_DB", "pocdb")
     )
+
 
 @app.post("/enqueue")
 def enqueue_message(msg: Message):
@@ -46,12 +55,17 @@ def enqueue_message(msg: Message):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.get("/status/{message_id}")
 def get_status(message_id: str):
     try:
         conn = get_pg_conn()
         cur = conn.cursor()
-        cur.execute("SELECT id, content FROM messages WHERE message_id = %s", (message_id,))
+        cur.execute(
+            "SELECT id, content FROM messages "
+            "WHERE message_id = %s",
+            (message_id,)
+        )
         result = cur.fetchone()
         cur.close()
         conn.close()
